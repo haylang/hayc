@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Hayc.Cli.Commands;
+﻿using Hayc.Cli.Commands;
 using Spectre.Cli;
 using Spectre.Console;
 
