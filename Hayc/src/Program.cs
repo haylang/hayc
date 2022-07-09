@@ -32,11 +32,6 @@ internal static class Program
         }
         catch (Exception ex)
         {
-            if (Debugger.IsAttached)
-            {
-                throw;
-            }
-
             AnsiConsole.WriteLine();
             AnsiConsole.WriteLine();
             AnsiConsole.WriteLine("---");
