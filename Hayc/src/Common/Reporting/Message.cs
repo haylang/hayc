@@ -1,4 +1,6 @@
-﻿namespace Hayc.Common;
+﻿using Hayc.Common.Location;
+
+namespace Hayc.Common.Reporting;
 
 /// <summary>
 /// Represents a message during compilation.

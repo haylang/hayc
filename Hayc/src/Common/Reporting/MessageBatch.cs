@@ -1,4 +1,6 @@
-﻿namespace Hayc.Common;
+﻿using Hayc.Common.Location;
+
+namespace Hayc.Common.Reporting;
 
 /// <summary>
 /// Stores messages.
@@ -26,11 +28,6 @@ public sealed class MessageBatch
     /// <param name="severity">The required severity.</param>
     public IEnumerable<Message> Filter(MessageSeverity severity) => _messages.Where(m => m.Severity == severity);
 
-    /// <summary>
-    /// Checks whether the batch contains any messages of the specified severity.
-    /// </summary>
-    public bool AnyOfSeverity(MessageSeverity severity) => _messages.Any(x => x.Severity == severity);
-    
     /// <summary>
     /// Adds an error.
     /// </summary>

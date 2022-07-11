@@ -1,23 +1,8 @@
-﻿using System.Diagnostics;
-using Hayc.Cli.Commands;
+﻿using Hayc.Cli.Commands;
 using Spectre.Cli;
 using Spectre.Console;
 
 namespace Hayc;
-
-public class IntArrayComparer : IComparer<int[]>
-{
-    public int Compare(int[]? a, int[]? b)
-    {
-        if (a is null
-            || b is null)
-        {
-            throw new InvalidOperationException();
-        }
-        
-        return a[0] - b[0];
-    }
-}
 
 internal static class Program
 {
@@ -43,11 +28,6 @@ internal static class Program
         try
         {
             return app.Run(args);
-        }
-        catch (Spectre.Cli.Exceptions.RuntimeException)
-        {
-            // ignored (usually just incorrect args)
-            return -1;
         }
         catch (Exception ex)
         {

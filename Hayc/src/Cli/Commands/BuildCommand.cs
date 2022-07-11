@@ -1,6 +1,6 @@
 ﻿using Hayc.Cli.Settings;
-using Hayc.Common;
 using Spectre.Cli;
+using Spectre.Console;
 
 namespace Hayc.Cli.Commands;
 
@@ -8,10 +8,8 @@ public sealed class BuildCommand : Command<BuildSettings>
 {
     public override int Execute(CommandContext context, BuildSettings settings)
     {
-        BuildEngine buildEngine = new(settings);
-        
-        return buildEngine.Build();
+        string response = AnsiConsole.Ask("Are you sure you want to build?", "y");
+        AnsiConsole.MarkupLine($"Your response was: [red]{response}[/]");
+        return 0;
     }
-
-    
 }
