@@ -46,8 +46,6 @@ public sealed class BuildEngine
             _sourceFiles.Add(file);
         }
 
-        
-
         foreach (Message message in CompileMessages.Messages)
         {
             AnsiConsole.MarkupLineInterpolated(
