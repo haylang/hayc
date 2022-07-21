@@ -1,5 +1,6 @@
 ﻿using HaycCli.Commands;
 using Spectre.Cli;
+using Spectre.Cli.Exceptions;
 using Spectre.Console;
 
 namespace HaycCli;
@@ -29,6 +30,11 @@ internal static class Program
         {
             return app.Run(args);
         }
+        catch (RuntimeException)
+        {
+            // Spectre exceptions are ignored
+            return -1;
+        }
         catch (Exception ex)
         {
             AnsiConsole.WriteLine();
@@ -42,7 +48,7 @@ internal static class Program
             AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine("[red]The Hay compiler crashed.[/]");
             AnsiConsole.MarkupLine(
-                "This is most likely a bug in the compiler. Please report this issue to the [bold]GitHub[/] repository."
+                "This is most likely a bug in the compiler. Please report this issue in the [bold]GitHub[/] repository."
             );
             AnsiConsole.MarkupLine("[yellow]The repository can be found here:[/] https://github.com/haylang/hayc");
             AnsiConsole.WriteLine();

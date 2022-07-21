@@ -4,6 +4,16 @@ namespace HaycCli.Settings;
 
 public class BuildSettings : CommandSettings
 {
-    [CommandArgument(0, "[PROJECT_PATH]")]
+    [CommandOption("--projectPath")]
     public string ProjectPath { get; set; } = ".";
+
+    public override ValidationResult Validate()
+    {
+        if (!Directory.Exists(ProjectPath))
+        {
+            return ValidationResult.Error("The given project directory does not exist.");
+        }
+        
+        return base.Validate();
+    }
 }
