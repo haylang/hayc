@@ -1,4 +1,6 @@
+using HaycLib.Ast;
 using HaycLib.Lexing;
+using HaycLib.Reporting;
 
 namespace HaycLib.Parsing;
 
@@ -7,18 +9,25 @@ namespace HaycLib.Parsing;
 /// </summary>
 public class Parser
 {
-    public Parser(Token[] tokens)
+    public Parser(MessageBatch messages, Token[] tokens)
     {
-        _state = new ParserState(tokens);
+        _messages = messages;
+        _state    = new ParserState(tokens);
     }
+
+    /// <summary>
+    /// The compilation message batch.
+    /// </summary>
+    private readonly MessageBatch _messages;
 
     /// <summary>
     /// The parser state.
     /// </summary>
     private readonly ParserState _state;
 
-    public void Parse()
+    public FileNode Parse()
     {
-        
+        // TODO: Implement parser
+        return new FileNode();
     }
 }

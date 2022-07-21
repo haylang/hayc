@@ -10,20 +10,19 @@ namespace HaycLib.Lexing;
 /// </summary>
 public sealed class Lexer
 {
-    public Lexer(string fileName, string parseContent)
+    public Lexer(MessageBatch messageBatch, string fileName, string parseContent)
     {
+        _messageBatch    = messageBatch;
         _fileName        = fileName;
         _startingContent = parseContent;
         _parseContent    = new StringBuilder(parseContent);
-
-        Messages = new MessageBatch();
     }
 
     /// <summary>
     /// The messages of the lexer.
     /// </summary>
-    public MessageBatch Messages { get; }
-    
+    private readonly MessageBatch _messageBatch;
+
     /// <summary>
     /// The current file position.
     /// </summary>
@@ -84,7 +83,11 @@ public sealed class Lexer
                 case TokenType.Skip:
                     continue;
                 case TokenType.Invalid:
-                    Messages.AddError($"Invalid character: {current.Value}", current.File, MessageId.InvalidCharacter);
+                    _messageBatch.AddError(
+                        $"Invalid character: {current.Value}",
+                        current.File,
+                        MessageId.InvalidCharacter
+                    );
                     continue;
                 default:
                     tokens.Add(current);

@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HaycLib", "HaycLib\HaycLib.csproj", "{96F02804-AE84-4DD4-A256-FB416444B3E7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HaycCli", "HaycCli\HaycCli.csproj", "{0A8E48AF-0BE1-46AA-B5D6-A5CCF6C35757}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{96F02804-AE84-4DD4-A256-FB416444B3E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96F02804-AE84-4DD4-A256-FB416444B3E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96F02804-AE84-4DD4-A256-FB416444B3E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A8E48AF-0BE1-46AA-B5D6-A5CCF6C35757}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A8E48AF-0BE1-46AA-B5D6-A5CCF6C35757}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A8E48AF-0BE1-46AA-B5D6-A5CCF6C35757}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A8E48AF-0BE1-46AA-B5D6-A5CCF6C35757}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
