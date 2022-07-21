@@ -1,6 +1,6 @@
-using Hayc.Lexing;
+using HaycLib.Lexing;
 
-namespace Hayc.Parsing;
+namespace HaycLib.Parsing;
 
 /// <summary>
 /// The state of the parser.

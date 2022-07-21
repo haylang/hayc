@@ -1,6 +1,6 @@
 ﻿using Spectre.Cli;
 
-namespace Hayc.Cli.Settings;
+namespace HaycLib.Cli.Settings;
 
 public class BuildSettings : CommandSettings
 {

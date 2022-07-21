@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Hayc.Lexing;
+namespace HaycLib.Lexing;
 
 public static class TokenDefinition
 {

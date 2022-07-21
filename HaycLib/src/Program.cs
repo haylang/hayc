@@ -1,8 +1,8 @@
-﻿using Hayc.Cli.Commands;
+﻿using HaycLib.Cli.Commands;
 using Spectre.Cli;
 using Spectre.Console;
 
-namespace Hayc;
+namespace HaycLib;
 
 internal static class Program
 {

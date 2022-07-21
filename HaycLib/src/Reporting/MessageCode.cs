@@ -1,4 +1,4 @@
-﻿namespace Hayc.Reporting;
+﻿namespace HaycLib.Reporting;
 
 /// <summary>
 /// Numerical message error codes.

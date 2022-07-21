@@ -1,9 +1,9 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
-using Hayc.Location;
-using Hayc.Reporting;
+using HaycLib.Location;
+using HaycLib.Reporting;
 
-namespace Hayc.Lexing;
+namespace HaycLib.Lexing;
 
 /// <summary>
 /// Performs lexical analysis on a string of characters.

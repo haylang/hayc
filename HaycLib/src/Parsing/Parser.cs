@@ -1,6 +1,6 @@
-using Hayc.Lexing;
+using HaycLib.Lexing;
 
-namespace Hayc.Parsing;
+namespace HaycLib.Parsing;
 
 /// <summary>
 /// Parses a source file.

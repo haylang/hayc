@@ -1,8 +1,8 @@
-﻿using Hayc.Cli.Settings;
+﻿using HaycLib.Cli.Settings;
 using Spectre.Cli;
 using Spectre.Console;
 
-namespace Hayc.Cli.Commands;
+namespace HaycLib.Cli.Commands;
 
 public sealed class BuildCommand : Command<BuildSettings>
 {

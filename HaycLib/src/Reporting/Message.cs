@@ -1,6 +1,6 @@
-﻿using Hayc.Location;
+﻿using HaycLib.Location;
 
-namespace Hayc.Reporting;
+namespace HaycLib.Reporting;
 
 /// <summary>
 /// Represents a message during compilation.

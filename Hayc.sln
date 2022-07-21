@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hayc", "Hayc\Hayc.csproj", "{96F02804-AE84-4DD4-A256-FB416444B3E7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HaycLib", "HaycLib\HaycLib.csproj", "{96F02804-AE84-4DD4-A256-FB416444B3E7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,4 +1,4 @@
-namespace Hayc.Parsing;
+namespace HaycLib.Parsing;
 
 public class PrematureEndOfFileException : Exception
 {

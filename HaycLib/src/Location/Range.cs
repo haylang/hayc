@@ -1,4 +1,4 @@
-﻿namespace Hayc.Location;
+﻿namespace HaycLib.Location;
 
 /// <summary>
 /// Represents a range of characters in a file.

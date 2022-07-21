@@ -1,6 +1,6 @@
-﻿using Hayc.Location;
+﻿using HaycLib.Location;
 
-namespace Hayc.Lexing;
+namespace HaycLib.Lexing;
 
 public record Token(TokenType Type, string Value, FileLocation File)
 {

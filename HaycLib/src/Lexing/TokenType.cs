@@ -1,4 +1,4 @@
-﻿namespace Hayc.Lexing;
+﻿namespace HaycLib.Lexing;
 
 public enum TokenType
 {
