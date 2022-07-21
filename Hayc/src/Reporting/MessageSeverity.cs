@@ -1,4 +1,4 @@
-﻿namespace Hayc.Common.Reporting;
+﻿namespace Hayc.Reporting;
 
 /// <summary>
 /// Represents the severity of a message.

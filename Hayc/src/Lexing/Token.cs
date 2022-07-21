@@ -1,5 +1,4 @@
-﻿using Hayc.Common;
-using Hayc.Common.Location;
+﻿using Hayc.Location;
 
 namespace Hayc.Lexing;
 

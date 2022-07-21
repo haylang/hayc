@@ -1,9 +1,7 @@
-﻿using System.Collections.Immutable;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
-using Hayc.Common;
-using Hayc.Common.Location;
-using Hayc.Common.Reporting;
+using Hayc.Location;
+using Hayc.Reporting;
 
 namespace Hayc.Lexing;
 

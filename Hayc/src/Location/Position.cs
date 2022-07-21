@@ -1,4 +1,4 @@
-﻿namespace Hayc.Common.Location;
+﻿namespace Hayc.Location;
 
 /// <summary>
 /// Represents a position within a file.

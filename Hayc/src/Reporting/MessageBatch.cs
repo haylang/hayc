@@ -1,6 +1,6 @@
-﻿using Hayc.Common.Location;
+﻿using Hayc.Location;
 
-namespace Hayc.Common.Reporting;
+namespace Hayc.Reporting;
 
 /// <summary>
 /// Stores messages.
