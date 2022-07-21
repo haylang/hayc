@@ -10,7 +10,7 @@ namespace Hayc.Lexing;
 /// <summary>
 /// Performs lexical analysis on a string of characters.
 /// </summary>
-public sealed class Tokenizer
+public sealed class Lexer
 {
     private static readonly Dictionary<string, TokenType> Keywords = new()
     {
@@ -27,7 +27,7 @@ public sealed class Tokenizer
         ["struct"]  = TokenType.Struct,
     };
 
-    public Tokenizer(string fileName, string parseContent)
+    public Lexer(string fileName, string parseContent)
     {
         _fileName        = fileName;
         _startingContent = parseContent;
@@ -87,7 +87,7 @@ public sealed class Tokenizer
     /// Tokenizes the entire stream input.
     /// </summary>
     /// <returns>An array of the tokens.</returns>
-    public Token[] Tokenize()
+    public Token[] Lex()
     {
         List<Token> tokens = new();
 
