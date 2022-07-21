@@ -12,21 +12,6 @@ namespace Hayc.Lexing;
 /// </summary>
 public sealed class Lexer
 {
-    private static readonly Dictionary<string, TokenType> Keywords = new()
-    {
-        ["if"]      = TokenType.If,
-        ["else"]    = TokenType.Else,
-        ["while"]   = TokenType.While,
-        ["do"]      = TokenType.Do,
-        ["return"]  = TokenType.Return,
-        ["true"]    = TokenType.Boolean,
-        ["false"]   = TokenType.Boolean,
-        ["null"]    = TokenType.Null,
-        ["this"]    = TokenType.This,
-        ["include"] = TokenType.Include,
-        ["struct"]  = TokenType.Struct,
-    };
-
     public Lexer(string fileName, string parseContent)
     {
         _fileName        = fileName;
@@ -36,6 +21,9 @@ public sealed class Lexer
         Messages = new MessageBatch();
     }
 
+    /// <summary>
+    /// The messages of the lexer.
+    /// </summary>
     public MessageBatch Messages { get; }
     
     /// <summary>
@@ -109,6 +97,10 @@ public sealed class Lexer
         return tokens.ToArray();
     }
 
+    /// <summary>
+    /// Attempts to find a token to match the current string to.
+    /// </summary>
+    /// <returns></returns>
     private Token? Match()
     {
         string useString = _parseContent.ToString();
