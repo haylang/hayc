@@ -13,4 +13,8 @@
       <PackageReference Include="Spectre.Console" Version="0.44.1-preview.0.29" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\HaycLib\HaycLib.csproj" />
+    </ItemGroup>
+
 </Project>

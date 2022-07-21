@@ -7,8 +7,22 @@ public enum MessageId
 {
     /*
      * Lexing
-     * 10000 - 19999
+     * 1XXX
      */
-    InvalidCharacter = 10001,
+    InvalidCharacter = 1000,
     
+    /*
+     * Parsing
+     * 3XXX
+     */
+    
+    /*
+     * Semantic analysis
+     * 5XXX
+     */
+    
+    /*
+     * Misc error
+     */
+    Miscellaneous = 9000
 }

@@ -9,6 +9,8 @@ public class BuildSettings : CommandSettings
 
     public override ValidationResult Validate()
     {
+        ProjectPath = Path.GetFullPath(ProjectPath);
+        
         if (!Directory.Exists(ProjectPath))
         {
             return ValidationResult.Error("The given project directory does not exist.");

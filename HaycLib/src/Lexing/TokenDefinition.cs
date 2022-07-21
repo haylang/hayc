@@ -23,7 +23,7 @@ public static class TokenDefinition
         (TokenType.This, new Regex("^this\\b", RegexOptions.Compiled)),
         (TokenType.Include, new Regex("^include\\b", RegexOptions.Compiled)),
         
-        (TokenType.String, new Regex("^(?<=\")(.*)(?=\")", RegexOptions.Compiled)),
+        (TokenType.String, new Regex("^\"(.*)\"", RegexOptions.Compiled)),
         (TokenType.Character, new Regex("^(?<=')\\\\?.(?=')", RegexOptions.Compiled)),
         (TokenType.Boolean, new Regex("^(true|false)\\b", RegexOptions.Compiled)),
         (TokenType.Decimal, new Regex("^[-+]?[0-9]*\\.[0-9]+", RegexOptions.Compiled)),

@@ -14,14 +14,14 @@ public sealed class BuildEngine
     {
         _projectPath = projectPath;
 
-        CompilationMessages = new MessageBatch();
+        MessageBatch = new MessageBatch();
     }
 
     /// <summary>
     /// The messages from the compilation.
     /// </summary>
-    public MessageBatch CompilationMessages { get; }
-    
+    public MessageBatch MessageBatch { get; }
+
     /// <summary>
     /// The path of the project.
     /// </summary>
@@ -47,13 +47,13 @@ public sealed class BuildEngine
         IEnumerable<FileNode> parsed = Parse(filePaths, lexed);
 
         // ReSharper disable once ConvertIfStatementToReturnStatement
-        if (CompilationMessages.Messages.Any(x => x.Severity == MessageSeverity.Error))
+        if (MessageBatch.Messages.Any(x => x.Severity == MessageSeverity.Error))
         {
             return false;
         }
 
         // Invoke LLVM in the future here!
-        
+
         return true;
     }
 
@@ -71,7 +71,7 @@ public sealed class BuildEngine
             string filePath = filePaths[i];
             string fileContent = File.ReadAllText(filePath);
 
-            Lexer lexer = new(CompilationMessages, filePath, fileContent);
+            Lexer lexer = new(MessageBatch, filePath, fileContent);
             Token[] tokens = lexer.Lex();
             lexed[i] = tokens;
         }
@@ -92,7 +92,7 @@ public sealed class BuildEngine
         for (int i = 0; i < filePaths.Length; ++i)
         {
             Token[] tokens = lexed[i];
-            Parser parser = new Parser(CompilationMessages, tokens);
+            Parser parser = new Parser(MessageBatch, tokens);
             parsed[i] = parser.Parse();
         }
 
