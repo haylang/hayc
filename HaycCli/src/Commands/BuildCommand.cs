@@ -25,14 +25,16 @@ public sealed class BuildCommand : Command<BuildSettings>
                 _                       => throw new ArgumentOutOfRangeException()
             };
 
-            AnsiConsole.MarkupInterpolated($"[[HAY{(int)message.Id:0000}]] [{severityColor}]{message.Severity}[/] in ");
-            AnsiConsole.MarkupLine($"{GetMarkupFileLocationString(message.Location, settings.ProjectPath)}");
-            AnsiConsole.MarkupLineInterpolated($"    : [cyan]{message.Content}[/]");
+            AnsiConsole.MarkupInterpolated($"[{severityColor}]{message.Severity}[/] [cyan]in[/] ");
+            AnsiConsole.Markup($"{GetMarkupFileLocationString(message.Location, settings.ProjectPath)}");
+            AnsiConsole.MarkupLineInterpolated($"[cyan]:[/] {message.Content}");
+            AnsiConsole.WriteLine();
         }
 
         if (!success)
         {
-            AnsiConsole.MarkupLineInterpolated($"Compilation failed.");
+            AnsiConsole.MarkupLine("[red]Compilation failed.[/]");
+            return 255;
         }
 
         return 0;
@@ -45,9 +47,9 @@ public sealed class BuildCommand : Command<BuildSettings>
                              : projectPath;
 
         string location = fileLocation.Range.Start == fileLocation.Range.End
-                              ? $"at [yellow]Ln {fileLocation.Range.Start.Line} Col {fileLocation.Range.Start.Column}[/]"
-                              : $"from [yellow]Ln {fileLocation.Range.Start.Line} Col {fileLocation.Range.Start.Column}[/]"
-                                + $" to [yellow]Ln {fileLocation.Range.End.Line} Col {fileLocation.Range.End.Column}[/]";
+                              ? $"[cyan]on[/] [yellow]Ln {fileLocation.Range.Start.Line} Col {fileLocation.Range.Start.Column}[/]"
+                              : $"[cyan]from[/] [yellow]Ln {fileLocation.Range.Start.Line} Col {fileLocation.Range.Start.Column}[/]"
+                                + $" [cyan]to[/] [yellow]Ln {fileLocation.Range.End.Line} Col {fileLocation.Range.End.Column}[/]";
 
         return $"[yellow]{usePath}[/] {location}";
     }

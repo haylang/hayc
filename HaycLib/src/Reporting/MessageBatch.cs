@@ -31,18 +31,18 @@ public sealed class MessageBatch
     /// <summary>
     /// Adds an error.
     /// </summary>
-    public void AddError(string content, FileLocation location, MessageId id)
-        => _messages.Add(new Message(content, location, id, MessageSeverity.Error));
+    public void AddError(string content, FileLocation location)
+        => _messages.Add(new Message(content, location, MessageSeverity.Error));
 
     /// <summary>
     /// Adds a warning.
     /// </summary>
-    public void AddWarn(string content, FileLocation location, MessageId id)
-        => _messages.Add(new Message(content, location, id, MessageSeverity.Warning));
+    public void AddWarn(string content, FileLocation location)
+        => _messages.Add(new Message(content, location, MessageSeverity.Warning));
     
     /// <summary>
     /// Adds a note.
     /// </summary>
-    public void AddInfo(string content, FileLocation location, MessageId id)
-        => _messages.Add(new Message(content, location, id, MessageSeverity.Info));
+    public void AddInfo(string content, FileLocation location)
+        => _messages.Add(new Message(content, location, MessageSeverity.Info));
 }

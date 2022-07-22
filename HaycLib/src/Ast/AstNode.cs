@@ -1,5 +1,8 @@
 namespace HaycLib.Ast;
 
+/// <summary>
+/// Any node in the AST.
+/// </summary>
 public abstract class AstNode
 {
     protected AstNode()
