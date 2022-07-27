@@ -14,4 +14,9 @@ public abstract class AstNode
     /// The children of this node.
     /// </summary>
     public List<AstNode> Children { get; }
+
+    /// <summary>
+    /// Invokes the expected method on the visitor.
+    /// </summary>
+    public abstract T Accept<T>(IVisitor<T> visitor);
 }

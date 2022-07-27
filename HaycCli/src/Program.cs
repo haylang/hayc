@@ -52,7 +52,7 @@ internal static class Program
             );
             AnsiConsole.MarkupLine("[yellow]The repository can be found here:[/] https://github.com/haylang/hayc");
             AnsiConsole.WriteLine();
-
+            
             return -1;
         }
     }

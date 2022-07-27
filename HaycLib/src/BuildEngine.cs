@@ -1,5 +1,4 @@
-using Antlr4.Runtime;
-using HaycLib.Antlr;
+using HaycLib.Ast.Nodes;
 using HaycLib.Reporting;
 
 namespace HaycLib;
@@ -41,7 +40,7 @@ public sealed class BuildEngine
          * 4. Output files
          */
 
-        IEnumerable<HayParser.FileContext> parsed = Parse(filePaths);
+        IEnumerable<FileNode> parsed = Parse(filePaths);
 
         // ReSharper disable once ConvertIfStatementToReturnStatement
         if (MessageBatch.Messages.Any(x => x.Severity == MessageSeverity.Error))
@@ -59,28 +58,21 @@ public sealed class BuildEngine
     /// </summary>
     /// <param name="filePaths">The paths of the files to lex.</param>
     /// <returns>In the array, each index corresponds to the index in filePaths.</returns>
-    public IEnumerable<HayParser.FileContext> Parse(string[] filePaths)
+    public IEnumerable<FileNode> Parse(string[] filePaths)
     {
-        HayParser.FileContext[] parsed = new HayParser.FileContext[filePaths.Length];
+        FileNode[] parsed = new FileNode[filePaths.Length];
 
         for (int i = 0; i < filePaths.Length; ++i)
         {
             // The path to the file.
             string path = filePaths[i];
 
-            // Lexing
-            ICharStream stream = new AntlrFileStream(path);
-            ITokenSource lexer = new HayLexer(stream);
-            ITokenStream tokens = new CommonTokenStream(lexer);
-
-            // Parsing
-            HayParser parser = new(tokens);
-            parser.RemoveErrorListeners();
-            parser.AddErrorListener(new MessageErrorListener(path, MessageBatch));
-            HayParser.FileContext tree = parser.file();
-
+            // TODO: lexing, parsing
+            FileNode node;
+            throw new NotImplementedException();
+            
             // We're done!
-            parsed[i] = tree;
+            parsed[i] = node;
         }
 
         return parsed;
