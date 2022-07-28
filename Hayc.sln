@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HaycCli", "HaycCli\HaycCli.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HaycLib.Tests", "HaycLib.Tests\HaycLib.Tests.csproj", "{C2100AFE-5BC0-43C7-8DD8-3822F678E1CE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HaycLib.Benchmarks", "HaycLib.Benchmarks\HaycLib.Benchmarks.csproj", "{33CF327C-B504-4979-B1B0-3C2E224E551D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{C2100AFE-5BC0-43C7-8DD8-3822F678E1CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2100AFE-5BC0-43C7-8DD8-3822F678E1CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2100AFE-5BC0-43C7-8DD8-3822F678E1CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33CF327C-B504-4979-B1B0-3C2E224E551D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33CF327C-B504-4979-B1B0-3C2E224E551D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33CF327C-B504-4979-B1B0-3C2E224E551D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33CF327C-B504-4979-B1B0-3C2E224E551D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
