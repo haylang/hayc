@@ -4,7 +4,8 @@ namespace HaycLib.Lexing;
 
 /// <summary>
 /// A special kind of <see cref="TokenTypeAttribute"/> that wraps the passed
-/// keywords in a regex of the following format: ^(keyw1|key2) with escaping.
+/// values in a regex that will match them as alternatives. All passed inputs
+/// are escaped.
 /// </summary>
 public class SimpleTokenTypeAttribute : TokenTypeAttribute
 {
