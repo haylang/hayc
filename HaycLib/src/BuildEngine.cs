@@ -1,4 +1,5 @@
 using HaycLib.Ast.Nodes;
+using HaycLib.Lexing;
 using HaycLib.Reporting;
 
 namespace HaycLib;
@@ -67,12 +68,12 @@ public sealed class BuildEngine
             // The path to the file.
             string path = filePaths[i];
 
-            // TODO: lexing, parsing
-            FileNode node;
-            throw new NotImplementedException();
+            Tokenizer tokenizer;
+            
+            // TODO: Parsing
             
             // We're done!
-            parsed[i] = node;
+            parsed[i] = default!;
         }
 
         return parsed;

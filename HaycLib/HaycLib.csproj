@@ -13,4 +13,8 @@
       <PackageReference Include="Spectre.Console" Version="0.44.1-preview.0.17" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="src\Parsing" />
+    </ItemGroup>
+
 </Project>
