@@ -1,4 +1,6 @@
+using System.Collections;
 using HaycLib.Ast.DataObjects;
+using HaycLib.Location;
 
 namespace HaycLib.Ast.Nodes;
 
@@ -7,10 +9,12 @@ namespace HaycLib.Ast.Nodes;
 /// </summary>
 public class FileNode : AstNode
 {
-    public FileNode(NamespaceName namespaceName, IEnumerable<NamespaceName> imports)
+    public FileNode(NamespaceName namespaceName, IEnumerable<NamespaceName> imports, BlockNode body)
+        : base(namespaceName.Location)
     {
         Namespace = namespaceName;
         Imports   = imports;
+        Body = body;
     }
 
     /// <summary>
@@ -23,7 +27,11 @@ public class FileNode : AstNode
     /// </summary>
     public IEnumerable<NamespaceName> Imports { get; }
 
-    /// <inheritdoc cref="AstNode.Accept{T}"/>
+    /// <summary>
+    /// The file body.
+    /// </summary>
+    public BlockNode Body { get; }
+
     public override T Accept<T>(IVisitor<T> visitor)
     {
         return visitor.FileNode(this);

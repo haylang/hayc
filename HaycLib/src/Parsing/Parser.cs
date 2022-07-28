@@ -1,4 +1,5 @@
 using System.Text;
+using HaycLib.Ast;
 using HaycLib.Ast.DataObjects;
 using HaycLib.Ast.Nodes;
 using HaycLib.Lexing;
@@ -45,25 +46,34 @@ public sealed class Parser
     {
         List<NamespaceName> imports = new();
         while (!_state.ReachedEndOfFile
-               && this.IsImport())
+               && IsImport())
         {
             imports.Add(ParseImport());
         }
 
         NamespaceName namespaceName;
         if (!_state.ReachedEndOfFile
-            && this.IsNamespaceStatement())
+            && IsNamespaceStatement())
         {
             namespaceName = ParseNamespaceStatement();
         }
         else
         {
             namespaceName = new NamespaceName("???", _state.CurrentToken.Location);
-            _state.CurrentTokenErr("Expected namespace declaration.");
+            _state.ErrCurrentToken("Expected namespace declaration.");
         }
 
-        FileNode fileNode = new(namespaceName, imports);
-        return fileNode;
+        BlockNode body = new(namespaceName.Location);
+
+        while (!_state.ReachedEndOfFile)
+        {
+            if (IsStruct())
+            {
+                body.Children.Add(ParseStruct());
+            }
+        }
+
+        return new FileNode(namespaceName, imports, body);
     }
 
     private bool IsImport()
@@ -102,6 +112,210 @@ public sealed class Parser
         return name;
     }
 
+    private bool IsStruct()
+    {
+        _state.BeginNewSnapshot();
+
+        try
+        {
+            _state.SkipAttributes();
+            _state.SkipOfType(TokenType.Modifier);
+
+            bool isStruct = _state.CurrentTokenIs(TokenType.Struct);
+
+            _state.RevertToPreviousSnapshot();
+
+            return isStruct;
+        }
+        catch (EndOfFileException)
+        {
+            _state.RevertToPreviousSnapshot();
+            return false;
+        }
+    }
+
+    private StructNode ParseStruct()
+    {
+        IEnumerable<HayAttribute> attributes = CollectAttributes();
+        IEnumerable<Token> modifiers = _state.CollectModifiers();
+        _state.ErrorUnwantedModifiers(modifiers);
+
+        _state.ExpectTokenOrError(TokenType.Struct);
+        _state.NextToken();
+
+        Token name = _state.CurrentToken;
+        _state.ExpectTokenOrError(TokenType.Identifier);
+        _state.NextToken();
+
+        StructBody body = ParseStructBody();
+
+        return new StructNode(name.Value.ToString(), body, attributes, name.Location);
+    }
+
+    private StructBody ParseStructBody()
+    {
+        List<StructInitializerNode> initializers = new(0);
+        List<VariableNode> fields = new(0);
+        StructDestructorNode? destructor = null;
+
+        if (!_state.CurrentTokenIs(TokenType.LeftBrace))
+        {
+            _state.ErrCurrentToken("Structure must have body (you may have missed the opening brace).");
+            return new StructBody(initializers, fields, destructor);
+        }
+
+        _state.NextToken(); // skip opening brace
+
+        while (!_state.CurrentTokenIs(TokenType.RightBrace))
+        {
+            if (IsStructInitializer())
+            {
+                initializers.Add(ParseStructInitializer());
+            }
+            else if (IsStructDestructor())
+            {
+                if (destructor != null)
+                {
+                    _state.ErrCurrentToken("Only one destructor is allowed.");
+                }
+                destructor = ParseStructDestructor();
+            }
+            else if (IsStructField())
+            {
+                fields.Add(ParseStructField());
+            }
+            else
+            {
+                _state.ErrCurrentToken(
+                    $"Expected struct field, initializer or destructor (got '{_state.CurrentToken.Value}')."
+                );
+                _state.Recover(ParseRecoverMode.UntilBrace);
+            }
+        }
+
+        _state.NextToken(); // skip }; the while loop won't exit until we're at it
+
+        return new StructBody(initializers, fields, destructor);
+    }
+
+    private bool IsStructInitializer()
+    {
+        return _state.CurrentTokenIs(TokenType.Initializer);
+    }
+
+    private StructInitializerNode ParseStructInitializer()
+    {
+        FileLocation initializerKeywordLocation = _state.CurrentToken.Location;
+        _state.ExpectTokenOrError(TokenType.Initializer);
+        _state.NextToken();
+
+        List<VariableNode> parameters = ParseParameters();
+        BlockNode body = ParseStatementBlock();
+
+        return new StructInitializerNode(body, parameters, initializerKeywordLocation);
+    }
+
+    private bool IsStructDestructor()
+    {
+        return _state.CurrentTokenIs(TokenType.Destructor);
+    }
+
+    private StructDestructorNode ParseStructDestructor()
+    {
+        FileLocation destructorKeywordLocation = _state.CurrentToken.Location;
+        _state.ExpectTokenOrError(TokenType.Destructor);
+        _state.NextToken();
+
+        _state.ExpectTokenOrError(TokenType.LeftParen);
+        if (_state.CurrentTokenIs(TokenType.LeftParen))
+        {
+            _state.NextToken();
+        }
+
+        _state.ExpectTokenOrError(TokenType.RightParen);
+        if (_state.CurrentTokenIs(TokenType.RightParen))
+        {
+            _state.NextToken();
+        }
+
+        BlockNode body = ParseStatementBlock();
+
+        return new StructDestructorNode(body, destructorKeywordLocation);
+    }
+
+    private bool IsStructField()
+    {
+        _state.BeginNewSnapshot();
+
+        try
+        {
+            bool isField = IsTypeRef();
+            ParseTypeRef();
+            isField = isField && _state.CurrentTokenIs(TokenType.Identifier);
+            _state.NextToken();
+
+            // this clusterfuck is:
+            // - we didn't find a semicolon and the next token is = or < or (
+            // - the = is for assignments
+            // - the < is for generic func calls
+            // - the ( is for non-generic func calls
+            if (!_state.CurrentTokenIs(TokenType.Semicolon)
+                && (_state.CurrentTokenIs(TokenType.Assign)
+                    || _state.CurrentTokenIs(TokenType.LeftAngle)
+                    || _state.CurrentTokenIs(TokenType.LeftParen)))
+            {
+                isField = false;
+            }
+
+            _state.RevertToPreviousSnapshot();
+            return isField;
+        }
+        catch (EndOfFileException)
+        {
+            _state.RevertToPreviousSnapshot();
+            return false;
+        }
+    }
+
+    private VariableNode ParseStructField()
+    {
+        TypeRefNode type = ParseTypeRef();
+        Token name = _state.CurrentToken;
+        _state.ExpectTokenOrError(TokenType.Identifier);
+        _state.NextToken();
+        
+        _state.ExpectTokenOrError(TokenType.Semicolon);
+        if (_state.CurrentTokenIs(TokenType.Semicolon))
+        {
+            _state.NextToken();
+        }
+
+        return new VariableNode(name.Value.ToString(), type, name.Location);
+    }
+
+    private BlockNode ParseStatementBlock()
+    {
+        Token openingBrace = _state.CurrentToken;
+        _state.ExpectTokenOrError(TokenType.LeftBrace);
+        _state.NextToken();
+
+        BlockNode node = new(openingBrace.Location);
+
+        while (!_state.CurrentTokenIs(TokenType.RightBrace))
+        {
+            node.Children.Add(ParseStatement());
+        }
+
+        _state.NextToken(); // consume }
+
+        return node;
+    }
+
+    private AstNode ParseStatement()
+    {
+        throw new NotImplementedException();
+    }
+
     private NamespaceName ParseNamespaceName()
     {
         _state.ExpectTokenOrError(TokenType.Identifier);
@@ -131,5 +345,149 @@ public sealed class Parser
         FileLocation location = new(fileName, range);
 
         return new NamespaceName(namespaceNameBuilder.ToString(), location);
+    }
+
+    private IEnumerable<HayAttribute> CollectAttributes()
+    {
+        List<HayAttribute> attributes = new(0);
+        while (IsAttribute())
+        {
+            _state.ExpectTokenOrError(TokenType.LeftBracket);
+            _state.NextToken();
+
+            Token attrName = _state.CurrentToken;
+            _state.NextToken();
+
+            _state.ExpectTokenOrError(TokenType.RightBracket);
+            _state.NextToken();
+
+            attributes.Add(new HayAttribute(attrName.Value.ToString(), attrName.Location));
+        }
+
+        return attributes;
+    }
+
+    private bool IsAttribute()
+    {
+        if (!_state.CurrentTokenIs(TokenType.LeftBracket))
+        {
+            return false;
+        }
+
+        _state.BeginNewSnapshot();
+        _state.NextToken();
+
+        bool isAttr = _state.CurrentTokenIs(TokenType.Identifier);
+
+        _state.RevertToPreviousSnapshot();
+
+        return isAttr;
+    }
+
+    private List<VariableNode> ParseParameters()
+    {
+        _state.ExpectTokenOrError(TokenType.LeftParen);
+        _state.NextToken();
+
+        List<VariableNode> parameters = new();
+
+        while (!_state.CurrentTokenIs(TokenType.RightParen))
+        {
+            FileLocation location;
+            TypeRefNode type = ParseTypeRef();
+            string name;
+
+            if (_state.CurrentTokenIs(TokenType.Identifier))
+            {
+                name     = _state.CurrentToken.Value.ToString();
+                location = _state.CurrentToken.Location;
+                _state.NextToken();
+            }
+            else
+            {
+                name     = "_";
+                location = type.SourceLocation;
+            }
+
+            parameters.Add(new VariableNode(name, type, location));
+
+            if (!_state.CurrentTokenIs(TokenType.RightParen)
+                && !_state.CurrentTokenIs(TokenType.Comma))
+            {
+                _state.ErrCurrentToken("Expected comma (to separate params).");
+            }
+            else if (_state.CurrentTokenIs(TokenType.Comma))
+            {
+                _state.NextToken();
+            }
+        }
+
+        _state.NextToken(); // skip )
+
+        return parameters;
+    }
+
+    private bool IsTypeRef()
+    {
+        return _state.CurrentTokenIs(TokenType.Identifier);
+    }
+
+    private TypeRefNode ParseTypeRef()
+    {
+        // segment - word separated by ::
+        List<Token> segments = new(1);
+        List<TypeRefNode> genericArgs = new(0);
+
+        while (true)
+        {
+            _state.ExpectTokenOrError(TokenType.Identifier);
+            segments.Add(_state.CurrentToken);
+            _state.NextToken();
+
+            if (_state.CurrentTokenIs(TokenType.DoubleColon))
+            {
+                _state.NextToken();
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (_state.CurrentTokenIs(TokenType.LeftAngle))
+        {
+            _state.NextToken();
+
+            while (!_state.CurrentTokenIs(TokenType.RightAngle))
+            {
+                genericArgs.Add(ParseTypeRef());
+            }
+
+            _state.NextToken(); // skip >
+        }
+
+        NamespaceName? namespaceName = null;
+
+        if (segments.Count > 1)
+        {
+            // the segments of *only* the namespace name
+            IEnumerable<Token> namespaceNameSegments = segments.TakeLast(1);
+            Position start = segments.First().Location.Range.Start;
+            Position end = segments.Last().Location.Range.End;
+            Range range = new(start, end);
+            FileLocation location = _state.CurrentToken.Location with
+            {
+                Range = range
+            };
+            namespaceName = new NamespaceName(String.Join("", namespaceNameSegments), location);
+        }
+
+        Token typeNameToken = segments.Last();
+        return new TypeRefNode(
+            namespaceName,
+            typeNameToken.Value.ToString(),
+            genericArgs,
+            typeNameToken.Location
+        );
     }
 }

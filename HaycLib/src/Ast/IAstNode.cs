@@ -1,22 +1,19 @@
-using System.Collections;
+using HaycLib.Location;
 
 namespace HaycLib.Ast;
 
-/// <summary>
-/// Any node in the AST.
-/// </summary>
 public abstract class AstNode
 {
-    protected AstNode()
+    protected AstNode(FileLocation sourceLocation)
     {
-        Children = new List<AstNode>();
+        SourceLocation = sourceLocation;
     }
-    
-    /// <summary>
-    /// The children of this node.
-    /// </summary>
-    public IEnumerable Children { get; }
 
+    /// <summary>
+    /// The location of this node in the source code.
+    /// </summary>
+    public FileLocation SourceLocation { get; }
+    
     /// <summary>
     /// Invokes the expected method on the visitor.
     /// </summary>

@@ -49,7 +49,7 @@ public sealed class ParserState
     /// <summary>
     /// Reverts to the previous snapshot.
     /// </summary>
-    public void RemoveCurrentSnapshot()
+    public void RevertToPreviousSnapshot()
     {
         if (_snapshots.Count == 1)
         {
@@ -103,6 +103,17 @@ public sealed class ParserState
     }
 
     /// <summary>
+    /// Advances to the next token while the current token type matches the given.
+    /// </summary>
+    public void SkipOfType(TokenType tokenType)
+    {
+        while (CurrentTokenIs(tokenType))
+        {
+            NextToken();
+        }
+    }
+
+    /// <summary>
     /// Expects a token, reports an error otherwise.
     /// </summary>
     public void ExpectTokenOrError(TokenType tokenType)
@@ -112,7 +123,7 @@ public sealed class ParserState
             return;
         }
 
-        Error($"Expected {tokenType}, got {CurrentToken.Type}.", CurrentToken);
+        Error($"Expected {tokenType}, got '{CurrentToken.Value}'.", CurrentToken);
     }
 
     /// <summary>
@@ -126,7 +137,7 @@ public sealed class ParserState
     /// Adds an error at the current token.
     /// Routes the call to the current snapshot's message batch.
     /// </summary>
-    public void CurrentTokenErr(string message)
+    public void ErrCurrentToken(string message)
         => CurrentSnapshot.MessageBatch.AddError(message, CurrentToken.Location);
 
     /// <summary>

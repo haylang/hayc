@@ -15,14 +15,17 @@ public enum TokenType
     [SimpleTokenType("namespace")]
     Namespace,
     
+    [SimpleTokenType("initializer")]
+    Initializer,
+    
+    [SimpleTokenType("destructor")]
+    Destructor,
+    
     [SimpleTokenType("struct")]
     Struct,
     
     [SimpleTokenType("import")]
     Import,
-    
-    [SimpleTokenType("extern")]
-    Extern,
     
     [SimpleTokenType("return")]
     Return,
@@ -132,6 +135,12 @@ public enum TokenType
     
     [SimpleTokenType('>')]
     RightAngle,
+    
+    [SimpleTokenType('[')]
+    LeftBracket,
+    
+    [SimpleTokenType(']')]
+    RightBracket,
 
     #endregion
     
