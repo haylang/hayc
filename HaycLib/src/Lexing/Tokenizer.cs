@@ -129,6 +129,6 @@ public sealed class Tokenizer
             }
             n++;
         }
-        return new Position(row, index - col - 1);
+        return new Position(row + 1, index - col);
     }
 }
