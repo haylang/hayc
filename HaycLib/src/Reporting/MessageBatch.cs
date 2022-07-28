@@ -45,4 +45,12 @@ public sealed class MessageBatch
     /// </summary>
     public void AddInfo(string content, FileLocation location)
         => _messages.Add(new Message(content, location, MessageSeverity.Info));
+
+    /// <summary>
+    /// Adds messages from the given source.
+    /// </summary>
+    public void AddRange(IEnumerable<Message> source)
+    {
+        _messages.AddRange(source);
+    }
 }

@@ -1,5 +1,6 @@
 using HaycLib.Ast.Nodes;
 using HaycLib.Lexing;
+using HaycLib.Parsing;
 using HaycLib.Reporting;
 
 namespace HaycLib;
@@ -58,22 +59,38 @@ public sealed class BuildEngine
     /// Performs syntactic analysis on the given files.
     /// </summary>
     /// <param name="filePaths">The paths of the files to lex.</param>
-    /// <returns>In the array, each index corresponds to the index in filePaths.</returns>
     public IEnumerable<FileNode> Parse(string[] filePaths)
     {
-        FileNode[] parsed = new FileNode[filePaths.Length];
+        List<FileNode> parsed = new(filePaths.Length);
 
         for (int i = 0; i < filePaths.Length; ++i)
         {
             // The path to the file.
             string path = filePaths[i];
+            string content = File.ReadAllText(path);
 
-            Tokenizer tokenizer;
-            
-            // TODO: Parsing
-            
+            Tokenizer tokenizer = new(path, content);
+            List<Token> tokens = tokenizer.Tokenize().ToList();
+
+            IEnumerable<Token> invalidTokens = tokens.Where(x => x.Type == TokenType.Invalid).ToList();
+            if (invalidTokens.Any())
+            {
+                foreach (Token token in invalidTokens)
+                {
+                    MessageBatch.AddError("Invalid token.", token.Location);
+                    tokens.Remove(token);
+                }
+            }
+
+            Parser parser = new(tokens);
+            FileNode? node = parser.Parse();
+            MessageBatch.AddRange(parser.GetMessages());
+
             // We're done!
-            parsed[i] = default!;
+            if (node != null)
+            {
+                parsed.Add(node);
+            }
         }
 
         return parsed;

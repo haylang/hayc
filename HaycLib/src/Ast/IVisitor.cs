@@ -2,12 +2,12 @@ using HaycLib.Ast.Nodes;
 
 namespace HaycLib.Ast;
 
-public interface IVisitor<T>
+public interface IVisitor<TReturn>
 {
-    public T Visit(AstNode node)
+    public TReturn Visit(AstNode node)
     {
         return node.Accept(this);
     }
     
-    public T FileNode(FileNode fileNode);
+    public TReturn FileNode(FileNode fileNode);
 }

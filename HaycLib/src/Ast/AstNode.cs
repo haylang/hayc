@@ -1,3 +1,5 @@
+using System.Collections;
+
 namespace HaycLib.Ast;
 
 /// <summary>
@@ -13,7 +15,7 @@ public abstract class AstNode
     /// <summary>
     /// The children of this node.
     /// </summary>
-    public List<AstNode> Children { get; }
+    public IEnumerable Children { get; }
 
     /// <summary>
     /// Invokes the expected method on the visitor.
