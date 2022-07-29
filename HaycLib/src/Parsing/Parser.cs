@@ -72,6 +72,15 @@ public sealed class Parser
             {
                 body.Children.Add(ParseStruct());
             }
+            else if (IsFuncDeclaration())
+            {
+                body.Children.Add(ParseFuncDeclaration());
+            }
+            else
+            {
+                _state.ErrCurrentToken("Expected struct or function.");
+                break;
+            }
         }
 
         return new FileNode(namespaceName, imports, body);
@@ -151,6 +160,89 @@ public sealed class Parser
         StructBody body = ParseStructBody();
 
         return new StructNode(name.Value.ToString(), body, attributes, name.Location);
+    }
+
+    private bool IsFuncDeclaration()
+    {
+        _state.BeginNewSnapshot();
+
+        try
+        {
+            _state.SkipAttributes();
+            _state.SkipOfType(TokenType.Modifier);
+
+            bool isStruct = _state.CurrentTokenIs(TokenType.Function);
+
+            _state.RevertToPreviousSnapshot();
+
+            return isStruct;
+        }
+        catch (EndOfFileException)
+        {
+            _state.RevertToPreviousSnapshot();
+            return false;
+        }
+    }
+
+    private FuncNode ParseFuncDeclaration()
+    {
+        IEnumerable<HayAttribute> attributes = CollectAttributes();
+        IEnumerable<Token> modifiers = _state.CollectModifiers();
+
+        _state.ExpectTokenOrError(TokenType.Function);
+        _state.NextToken();
+
+        ObjAccessNode? owner = null;
+
+        if (_state.CurrentTokenIs(TokenType.At))
+        {
+            _state.NextToken();
+            owner = ParseObjectAccess(true);
+        }
+
+        Token nameToken = _state.CurrentToken;
+        _state.ExpectTokenOrError(TokenType.Identifier);
+        _state.NextToken();
+
+        List<ObjAccessNode> genericParams = _state.CurrentTokenIs(TokenType.LeftAngle)
+                                                ? ParseGenericParams()
+                                                : new List<ObjAccessNode>(0);
+
+        List<VariableNode> parameters = ParseParameters();
+
+        ObjAccessNode returnType;
+        _state.ExpectTokenOrError(TokenType.Colon);
+        if (_state.CurrentTokenIs(TokenType.Colon))
+        {
+            _state.NextToken();
+            returnType = ParseObjectAccess(true);
+        }
+        else
+        {
+            _state.ErrCurrentToken("Missing return type.");
+            returnType = new ObjAccessNode(null, "<none>", Array.Empty<ObjAccessNode>(), nameToken.Location);
+        }
+
+        BlockNode body = ParseStatementBlock();
+
+        return owner == null
+                   ? new FuncNode(
+                       nameToken.Value.ToString(),
+                       body,
+                       attributes,
+                       parameters,
+                       returnType,
+                       nameToken.Location
+                   )
+                   : new StructFuncNode(
+                       nameToken.Value.ToString(),
+                       body,
+                       attributes,
+                       parameters,
+                       returnType,
+                       nameToken.Location,
+                       owner
+                   );
     }
 
     private StructBody ParseStructBody()
@@ -285,10 +377,13 @@ public sealed class Parser
         _state.ExpectTokenOrError(TokenType.Identifier);
         _state.NextToken();
 
-        _state.ExpectTokenOrError(TokenType.Semicolon);
         if (_state.CurrentTokenIs(TokenType.Semicolon))
         {
             _state.NextToken();
+        }
+        else
+        {
+            _state.ErrCurrentToken("Missing semicolon.");
         }
 
         return new VariableNode(name.Value.ToString(), type, name.Location, null);
@@ -430,6 +525,15 @@ public sealed class Parser
         _state.NextToken();
 
         AstNode value = ParseExpression();
+        
+        if (_state.CurrentTokenIs(TokenType.Semicolon))
+        {
+            _state.NextToken();
+        }
+        else
+        {
+            _state.ErrCurrentToken("Missing semicolon.");
+        }
 
         return new VariableAssignmentNode(variable, value, variable.SourceLocation);
     }
@@ -478,7 +582,7 @@ public sealed class Parser
             }
             else
             {
-                _state.ErrCurrentToken("Expected semicolon.");
+                _state.ErrCurrentToken("Missing semicolon.");
             }
 
             return new VariableNode(name.Value.ToString(), type, name.Location, value);
@@ -491,7 +595,7 @@ public sealed class Parser
             }
             else
             {
-                _state.ErrCurrentToken("Expected semicolon.");
+                _state.ErrCurrentToken("Missing semicolon.");
             }
 
             return new VariableNode(name.Value.ToString(), type, name.Location, null);
@@ -544,35 +648,7 @@ public sealed class Parser
         {
             // error!
 
-            FileLocation startLocation = _state.CurrentToken.Location;
-            int openBraces = 0;
-            while (true)
-            {
-                if (_state.CurrentTokenIs(TokenType.LeftAngle))
-                {
-                    openBraces++;
-                }
-                else if (_state.CurrentTokenIs(TokenType.RightAngle))
-                {
-                    openBraces--;
-                }
-
-                if (openBraces <= 0)
-                {
-                    break;
-                }
-
-                _state.NextToken();
-            }
-
-            Position lastCloseBracePos = _state.CurrentToken.Location.Range.End;
-            FileLocation fullLocation = startLocation with
-            {
-                Range = startLocation.Range with
-                {
-                    End = lastCloseBracePos
-                }
-            };
+            FileLocation fullLocation = _state.SkipGenericType();
 
             _state.CurrentSnapshot.MessageBatch.AddError(
                 "Generic arguments are not allowed at this point.",
@@ -859,6 +935,38 @@ public sealed class Parser
         _state.NextToken(); // skip )
 
         return parameters;
+    }
+
+    private List<ObjAccessNode> ParseGenericParams()
+    {
+        if (_state.CurrentTokenIs(TokenType.LeftAngle))
+        {
+            _state.NextToken();
+        }
+        else
+        {
+            _state.ErrCurrentToken("Expected < for generic params.");
+            return new List<ObjAccessNode>(0);
+        }
+
+        List<ObjAccessNode> arguments = new(1);
+        while (!_state.CurrentTokenIs(TokenType.RightAngle))
+        {
+            arguments.Add(ParseTypeRef());
+
+            if (!_state.CurrentTokenIs(TokenType.RightAngle)
+                && !_state.CurrentTokenIs(TokenType.Comma))
+            {
+                _state.ErrCurrentToken("Expected comma.");
+            }
+            else if (_state.CurrentTokenIs(TokenType.Comma))
+            {
+                _state.NextToken();
+            }
+        }
+        _state.NextToken();
+
+        return arguments;
     }
 
     private bool IsTypeRef()

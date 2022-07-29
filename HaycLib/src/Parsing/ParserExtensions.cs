@@ -1,10 +1,14 @@
 using HaycLib.Ast.Data;
 using HaycLib.Lexing;
+using HaycLib.Location;
 
 namespace HaycLib.Parsing;
 
 public static class ParsingExtensions
 {
+    /// <summary>
+    /// Adds an error for each modifier that's not allowed.
+    /// </summary>
     public static void ErrorUnwantedModifiers(
         this ParserState state,
         IEnumerable<Token> givenModifiers,
@@ -26,6 +30,9 @@ public static class ParsingExtensions
         }
     }
 
+    /// <summary>
+    /// Collects modifiers.
+    /// </summary>
     public static IEnumerable<Token> CollectModifiers(this ParserState state)
     {
         List<Token> modifiers = new(0);
@@ -37,6 +44,9 @@ public static class ParsingExtensions
         return modifiers;
     }
 
+    /// <summary>
+    /// Skips attributes.
+    /// </summary>
     public static void SkipAttributes(this ParserState state)
     {
         while (state.CurrentTokenIs(TokenType.LeftBracket))
@@ -59,6 +69,47 @@ public static class ParsingExtensions
         }
     }
 
+    /// <summary>
+    /// Skips generic brackets and returns their whole length.
+    /// </summary>
+    public static FileLocation SkipGenericType(this ParserState state)
+    {
+        FileLocation startLocation = state.CurrentToken.Location;
+        int openBraces = 0;
+        while (true)
+        {
+            if (state.CurrentTokenIs(TokenType.LeftAngle))
+            {
+                openBraces++;
+            }
+            else if (state.CurrentTokenIs(TokenType.RightAngle))
+            {
+                openBraces--;
+            }
+
+            if (openBraces <= 0)
+            {
+                break;
+            }
+
+            state.NextToken();
+        }
+
+        Position lastCloseBracePos = state.CurrentToken.Location.Range.End;
+        FileLocation fullLocation = startLocation with
+        {
+            Range = startLocation.Range with
+            {
+                End = lastCloseBracePos
+            }
+        };
+
+        return fullLocation;
+    }
+    
+    /// <summary>
+    /// Recovers from parsing errors.
+    /// </summary>
     public static void Recover(this ParserState state, ParseRecoverMode mode)
     {
         if (mode == ParseRecoverMode.Detect)
@@ -113,7 +164,7 @@ public static class ParsingExtensions
                 }
             
             case ParseRecoverMode.UntilSemicolon:
-                state.SkipUntil(TokenType.Semicolon);
+                state.SkipUntil(TokenType.Semicolon, 10);
                 if (!state.ReachedEndOfFile && state.CurrentTokenIs(TokenType.Semicolon))
                 {
                     state.NextToken();

@@ -55,6 +55,8 @@ public static class TokenTypeExtensions
     {
         return tokenType switch
         {
+            TokenType.Plus or TokenType.Minus => 0,
+            TokenType.Asterisk or TokenType.Slash or TokenType.Percent => 1,
             _ => -1
         };
     }

@@ -8,12 +8,13 @@ public class StructFuncNode : FuncNode
 {
     public StructFuncNode(
         string name,
-        IEnumerable<VariableNode> parameters,
+        BlockNode body,
         IEnumerable<HayAttribute> attributes,
+        IEnumerable<VariableNode> parameters,
         ObjAccessNode returnType,
         FileLocation location,
         ObjAccessNode ownerStruct)
-        : base(name, attributes, parameters, returnType, location)
+        : base(name, body, attributes, parameters, returnType, location)
     {
         OwnerStruct = ownerStruct;
     }

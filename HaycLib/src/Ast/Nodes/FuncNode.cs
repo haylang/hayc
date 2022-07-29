@@ -9,6 +9,7 @@ public class FuncNode : AstNode
 {
     public FuncNode(
         string name,
+        BlockNode body,
         IEnumerable<HayAttribute> attributes,
         IEnumerable<VariableNode> parameters,
         ObjAccessNode returnType,
@@ -16,6 +17,7 @@ public class FuncNode : AstNode
         : base(location)
     {
         Name       = name;
+        Body       = body;
         Attributes = attributes;
         Parameters = parameters;
         ReturnType = returnType;
@@ -26,6 +28,11 @@ public class FuncNode : AstNode
     /// </summary>
     public string Name { get; }
 
+    /// <summary>
+    /// The body of the function.
+    /// </summary>
+    public BlockNode Body { get; }
+    
     /// <summary>
     /// The attributes of the function.
     /// </summary>

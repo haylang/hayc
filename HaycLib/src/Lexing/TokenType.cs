@@ -24,6 +24,9 @@ public enum TokenType
     [SimpleTokenType("struct")]
     Struct,
     
+    [SimpleTokenType("function")]
+    Function,
+    
     [SimpleTokenType("import")]
     Import,
     

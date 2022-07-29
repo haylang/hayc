@@ -88,9 +88,9 @@ public sealed class ParserState
     /// Skips tokens until it reaches the given token.
     /// It consumes the given token, leaving the parser on the next one.
     /// </summary>
-    public void SkipUntil(TokenType tokenType)
+    public void SkipUntil(TokenType tokenType, int max = -1)
     {
-        while (true)
+        while (max-- != 0)
         {
             if (CurrentToken.Type == tokenType)
             {
