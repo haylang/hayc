@@ -525,7 +525,7 @@ public sealed class Parser
         _state.NextToken();
 
         AstNode value = ParseExpression();
-        
+
         if (_state.CurrentTokenIs(TokenType.Semicolon))
         {
             _state.NextToken();
