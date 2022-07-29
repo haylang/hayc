@@ -25,8 +25,8 @@ public static class MessagePrinter
             Position start = message.Location.Range.Start;
             
             AnsiConsole.MarkupLineInterpolated($"[{severityColor}]{message.Severity}[/]: {message.Content}");
-            AnsiConsole.MarkupInterpolated($"    [silver]in[/] {path} ");
-            AnsiConsole.MarkupInterpolated($"[silver]at[/] [yellow]{start.Line}[/]:[yellow]{start.Column}[/]");
+            AnsiConsole.MarkupInterpolated($"   [i][silver]in[/] {path}[/] ");
+            AnsiConsole.MarkupInterpolated($"[i][silver]at[/] [yellow]{start.Line}[/]:[yellow]{start.Column}[/][/]");
             AnsiConsole.WriteLine();
         }
     }

@@ -23,6 +23,8 @@ public sealed class BuildCommand : Command<BuildSettings>
             AnsiConsole.MarkupLine("[red]Compilation failed.[/]");
             return 255;
         }
+        
+        AnsiConsole.MarkupLine("[lime]Compilation successful.[/]");
 
         return 0;
     }
