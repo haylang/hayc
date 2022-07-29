@@ -1,6 +1,6 @@
 using HaycLib.Location;
 
-namespace HaycLib.Ast.DataObjects;
+namespace HaycLib.Ast.Data;
 
 /// <summary>
 /// Contains data for a namespace namespace.

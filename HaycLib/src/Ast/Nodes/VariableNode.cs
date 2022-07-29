@@ -4,11 +4,16 @@ namespace HaycLib.Ast.Nodes;
 
 public class VariableNode : AstNode
 {
-    public VariableNode(string name, TypeRefNode type, FileLocation location)
+    public VariableNode(
+        string name,
+        ObjAccessNode type,
+        FileLocation location,
+        AstNode? defaultValue)
         : base(location)
     {
-        Name = name;
-        Type = type;
+        Name         = name;
+        Type         = type;
+        DefaultValue = defaultValue;
     }
 
     /// <summary>
@@ -19,7 +24,12 @@ public class VariableNode : AstNode
     /// <summary>
     /// The type of the variable.
     /// </summary>
-    public TypeRefNode Type { get; }
+    public ObjAccessNode Type { get; }
+
+    /// <summary>
+    /// The default value of the variable.
+    /// </summary>
+    public AstNode? DefaultValue { get; set; }
 
     public override T Accept<T>(IVisitor<T> visitor)
     {

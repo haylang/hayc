@@ -1,5 +1,5 @@
 using System.Collections;
-using HaycLib.Ast.DataObjects;
+using HaycLib.Ast.Data;
 using HaycLib.Ast.Interfaces;
 using HaycLib.Location;
 
@@ -11,7 +11,7 @@ public class FuncNode : AstNode
         string name,
         IEnumerable<HayAttribute> attributes,
         IEnumerable<VariableNode> parameters,
-        TypeRefNode returnType,
+        ObjAccessNode returnType,
         FileLocation location)
         : base(location)
     {
@@ -36,7 +36,7 @@ public class FuncNode : AstNode
     /// </summary>
     public IEnumerable<VariableNode> Parameters { get; }
 
-    public TypeRefNode ReturnType { get; }
+    public ObjAccessNode ReturnType { get; }
 
     public override T Accept<T>(IVisitor<T> visitor)
     {

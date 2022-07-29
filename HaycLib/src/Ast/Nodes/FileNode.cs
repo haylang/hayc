@@ -1,5 +1,5 @@
 using System.Collections;
-using HaycLib.Ast.DataObjects;
+using HaycLib.Ast.Data;
 using HaycLib.Location;
 
 namespace HaycLib.Ast.Nodes;

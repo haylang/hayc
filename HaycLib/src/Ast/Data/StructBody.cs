@@ -1,7 +1,7 @@
 using System.Collections;
 using HaycLib.Ast.Nodes;
 
-namespace HaycLib.Ast.DataObjects;
+namespace HaycLib.Ast.Data;
 
 /// <summary>
 /// The body of a struct.

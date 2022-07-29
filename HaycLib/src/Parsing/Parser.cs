@@ -1,7 +1,8 @@
 using System.Text;
 using HaycLib.Ast;
-using HaycLib.Ast.DataObjects;
+using HaycLib.Ast.Data;
 using HaycLib.Ast.Nodes;
+using HaycLib.Extensions;
 using HaycLib.Lexing;
 using HaycLib.Location;
 using HaycLib.Reporting;
@@ -254,7 +255,7 @@ public sealed class Parser
             isField = isField && _state.CurrentTokenIs(TokenType.Identifier);
             _state.NextToken();
 
-            // this clusterfuck is:
+            // this cluster-fuck is:
             // - we didn't find a semicolon and the next token is = or < or (
             // - the = is for assignments
             // - the < is for generic func calls
@@ -279,18 +280,18 @@ public sealed class Parser
 
     private VariableNode ParseStructField()
     {
-        TypeRefNode type = ParseTypeRef();
+        ObjAccessNode type = ParseTypeRef();
         Token name = _state.CurrentToken;
         _state.ExpectTokenOrError(TokenType.Identifier);
         _state.NextToken();
-        
+
         _state.ExpectTokenOrError(TokenType.Semicolon);
         if (_state.CurrentTokenIs(TokenType.Semicolon))
         {
             _state.NextToken();
         }
 
-        return new VariableNode(name.Value.ToString(), type, name.Location);
+        return new VariableNode(name.Value.ToString(), type, name.Location, null);
     }
 
     private BlockNode ParseStatementBlock()
@@ -303,7 +304,12 @@ public sealed class Parser
 
         while (!_state.CurrentTokenIs(TokenType.RightBrace))
         {
-            node.Children.Add(ParseStatement());
+            AstNode? stat = ParseStatement();
+
+            if (stat != null)
+            {
+                node.Children.Add(stat);
+            }
         }
 
         _state.NextToken(); // consume }
@@ -311,9 +317,437 @@ public sealed class Parser
         return node;
     }
 
-    private AstNode ParseStatement()
+    private AstNode? ParseStatement()
     {
-        throw new NotImplementedException();
+        if (IsFuncCall())
+        {
+            return ParseFuncCall();
+        }
+        else if (IsLocalVariableDecl())
+        {
+            return ParseLocalVariableDecl();
+        }
+        else if (IsVariableAssignment())
+        {
+            return ParseVariableAssignment();
+        }
+        else
+        {
+            _state.ErrCurrentToken($"Expected statement (got '{_state.CurrentToken.Value}').");
+            _state.Recover(ParseRecoverMode.Detect);
+            return null;
+        }
+    }
+
+    private bool IsFuncCall()
+    {
+        // We have two options:
+        // - The function is accessed by instance
+        // - The function is accessed statically (by namespace)
+
+        _state.BeginNewSnapshot();
+
+        try
+        {
+            bool isCall = false;
+            if (IsObjectAccess())
+            {
+                // function call on struct instance
+                isCall = true;
+                ParseObjectAccess(true);
+            }
+            else if (IsTypeRef())
+            {
+                // same syntax as type ref; this is just a function within a namespace
+                isCall = true;
+                ParseTypeRef();
+            }
+            isCall = isCall && _state.CurrentTokenIs(TokenType.LeftParen);
+
+            _state.RevertToPreviousSnapshot();
+            return isCall;
+        }
+        catch (EndOfFileException)
+        {
+            _state.RevertToPreviousSnapshot();
+            return false;
+        }
+    }
+
+    private FuncCallNode ParseFuncCall()
+    {
+        ObjAccessNode functionObject;
+
+        if (IsObjectAccess())
+        {
+            functionObject = ParseObjectAccess(true);
+        }
+        else if (IsTypeRef())
+        {
+            functionObject = ParseTypeRef();
+        }
+        else
+        {
+            functionObject = new ObjAccessNode(
+                null,
+                "???",
+                Array.Empty<ObjAccessNode>(),
+                _state.CurrentToken.Location
+            );
+            _state.ErrCurrentToken($"Expected function name (got '{_state.CurrentToken.Value}').");
+        }
+
+        List<AstNode> arguments = ParseArguments();
+
+        return new FuncCallNode(functionObject, arguments, functionObject.SourceLocation);
+    }
+
+    private bool IsVariableAssignment()
+    {
+        _state.BeginNewSnapshot();
+
+        try
+        {
+            bool isCall = IsObjectAccess();
+            ParseObjectAccess(true);
+            isCall = isCall && _state.CurrentTokenIs(TokenType.Assign);
+            // TODO: More assignment operators
+
+            _state.RevertToPreviousSnapshot();
+            return isCall;
+        }
+        catch (EndOfFileException)
+        {
+            _state.RevertToPreviousSnapshot();
+            return false;
+        }
+    }
+
+    private VariableAssignmentNode ParseVariableAssignment()
+    {
+        ObjAccessNode variable = ParseObjectAccess(true);
+        _state.ExpectTokenOrError(TokenType.Assign);
+        _state.NextToken();
+
+        AstNode value = ParseExpression();
+
+        return new VariableAssignmentNode(variable, value, variable.SourceLocation);
+    }
+
+    private bool IsLocalVariableDecl()
+    {
+        _state.BeginNewSnapshot();
+
+        try
+        {
+            bool isDecl = IsTypeRef();
+            ParseTypeRef();
+            isDecl = isDecl && _state.CurrentTokenIs(TokenType.Identifier);
+            _state.NextToken();
+            isDecl = isDecl
+                     && (_state.CurrentTokenIs(TokenType.Assign)
+                         || _state.CurrentTokenIs(TokenType.Semicolon));
+            _state.NextToken();
+
+            _state.RevertToPreviousSnapshot();
+            return isDecl;
+        }
+        catch (EndOfFileException)
+        {
+            _state.RevertToPreviousSnapshot();
+            return false;
+        }
+    }
+
+    private VariableNode ParseLocalVariableDecl()
+    {
+        ObjAccessNode type = ParseTypeRef();
+
+        Token name = _state.CurrentToken;
+        _state.ExpectTokenOrError(TokenType.Identifier);
+        _state.NextToken();
+
+        if (_state.CurrentTokenIs(TokenType.Assign))
+        {
+            _state.NextToken();
+            AstNode value = ParseExpression();
+
+            if (_state.CurrentTokenIs(TokenType.Semicolon))
+            {
+                _state.NextToken();
+            }
+            else
+            {
+                _state.ErrCurrentToken("Expected semicolon.");
+            }
+
+            return new VariableNode(name.Value.ToString(), type, name.Location, value);
+        }
+        else
+        {
+            if (_state.CurrentTokenIs(TokenType.Semicolon))
+            {
+                _state.NextToken();
+            }
+            else
+            {
+                _state.ErrCurrentToken("Expected semicolon.");
+            }
+
+            return new VariableNode(name.Value.ToString(), type, name.Location, null);
+        }
+    }
+
+    private bool IsObjectAccess()
+    {
+        return _state.CurrentTokenIs(TokenType.Identifier)
+               && _state.PeekToken().Type != TokenType.DoubleColon;
+    }
+
+    private ObjAccessNode ParseObjectAccess(bool allowGenericArguments)
+    {
+        // segment - word separated by .
+        List<Token> segments = new(1);
+        List<ObjAccessNode> genericArgs = new(0);
+
+        while (true)
+        {
+            _state.ExpectTokenOrError(TokenType.Identifier);
+            segments.Add(_state.CurrentToken);
+            _state.NextToken();
+
+            if (_state.CurrentTokenIs(TokenType.Dot))
+            {
+                _state.NextToken();
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (allowGenericArguments)
+        {
+            if (_state.CurrentTokenIs(TokenType.LeftAngle))
+            {
+                _state.NextToken();
+
+                while (!_state.CurrentTokenIs(TokenType.RightAngle))
+                {
+                    genericArgs.Add(ParseTypeRef());
+                }
+
+                _state.NextToken(); // skip >
+            }
+        }
+        else if (_state.CurrentTokenIs(TokenType.LeftAngle))
+        {
+            // error!
+
+            FileLocation startLocation = _state.CurrentToken.Location;
+            int openBraces = 0;
+            while (true)
+            {
+                if (_state.CurrentTokenIs(TokenType.LeftAngle))
+                {
+                    openBraces++;
+                }
+                else if (_state.CurrentTokenIs(TokenType.RightAngle))
+                {
+                    openBraces--;
+                }
+
+                if (openBraces <= 0)
+                {
+                    break;
+                }
+
+                _state.NextToken();
+            }
+
+            Position lastCloseBracePos = _state.CurrentToken.Location.Range.End;
+            FileLocation fullLocation = startLocation with
+            {
+                Range = startLocation.Range with
+                {
+                    End = lastCloseBracePos
+                }
+            };
+
+            _state.CurrentSnapshot.MessageBatch.AddError(
+                "Generic arguments are not allowed at this point.",
+                fullLocation
+            );
+
+            _state.NextToken(); // skip last >
+        }
+
+        NamespaceName? namespaceName = null;
+
+        if (segments.Count > 1)
+        {
+            // the segments of *only* the namespace name
+            IEnumerable<Token> namespaceNameSegments = segments.TakeLast(1);
+            Position start = segments.First().Location.Range.Start;
+            Position end = segments.Last().Location.Range.End;
+            Range range = new(start, end);
+            FileLocation location = _state.CurrentToken.Location with
+            {
+                Range = range
+            };
+            namespaceName = new NamespaceName(String.Join("", namespaceNameSegments), location);
+        }
+
+        Token typeNameToken = segments.Last();
+        return new ObjAccessNode(
+            namespaceName,
+            typeNameToken.Value.ToString(),
+            genericArgs,
+            typeNameToken.Location
+        );
+    }
+
+    private AstNode ParseExpression()
+    {
+        AstNode left = ParseExpression_Primary();
+        return ParseExpression_Rhs(0, left);
+    }
+
+    private AstNode ParseExpression_Rhs(int minPrecedence, AstNode lhs)
+    {
+        Token lookahead = _state.CurrentToken;
+
+        while (lookahead.Type.GetPrecedence() >= minPrecedence)
+        {
+            Token op = lookahead;
+            _state.NextToken();
+
+            AstNode rhs = ParseExpression_Primary();
+            lookahead = _state.CurrentToken;
+
+            int opPrecedence = op.Type.GetPrecedence();
+            int lookaheadPrecedence = lookahead.Type.GetPrecedence();
+            while (lookaheadPrecedence > opPrecedence
+                   || lookahead.Type.IsRightAssociative()
+                   && lookaheadPrecedence == minPrecedence)
+            {
+                rhs = ParseExpression_Rhs(opPrecedence + (lookaheadPrecedence > opPrecedence ? 1 : 0), rhs);
+                lookahead = _state.CurrentToken;
+            }
+
+            TokenType opType = op.Type;
+            lhs = opType switch
+            {
+                TokenType.Plus
+                 or TokenType.Minus
+                 or TokenType.Asterisk
+                 or TokenType.Slash
+                 or TokenType.Percent => new ArithmeticOperatorNode(
+                        (ArithmeticOperatorType) opType,
+                        lhs,
+                        rhs,
+                        op.Location
+                    ),
+                _ => throw new NotSupportedException($"Operator {opType} is not supported.")
+            };
+        }
+
+        return lhs;
+    }
+
+    private AstNode ParseExpression_Primary()
+    {
+        if (IsObjectAccess())
+        {
+            return ParseObjectAccess(false);
+        }
+        else if (IsNumberExpr())
+        {
+            return ParseNumberExpr();
+        }
+        else if (IsParenExpr())
+        {
+            return ParseParenExpr();
+        }
+        else
+        {
+            FileLocation errLoc = _state.CurrentToken.Location;
+            _state.ErrCurrentToken($"Expected expression (got '{_state.CurrentToken.Type}').");
+            _state.Recover(ParseRecoverMode.Detect);
+            return new NullNode(errLoc);
+        }
+    }
+
+    private bool IsNumberExpr()
+    {
+        return _state.CurrentTokenIs(TokenType.Integer)
+               || _state.CurrentTokenIs(TokenType.Decimal);
+    }
+
+    private AstNode ParseNumberExpr()
+    {
+        Token numberToken = _state.CurrentToken;
+        _state.NextToken();
+
+        switch (numberToken.Type)
+        {
+            case TokenType.Integer:
+                return new IntegerNode(Convert.ToInt64(numberToken.Value.ToString()), numberToken.Location);
+
+            case TokenType.Decimal:
+                return new DecimalNode(Convert.ToDouble(numberToken.Value.ToString()), numberToken.Location);
+
+            default:
+                _state.Error("Expected number.", numberToken);
+                return new IntegerNode(0, numberToken.Location);
+        }
+    }
+
+    private bool IsParenExpr()
+    {
+        return _state.CurrentTokenIs(TokenType.LeftParen);
+    }
+
+    private AstNode ParseParenExpr()
+    {
+        _state.ExpectTokenOrError(TokenType.LeftParen);
+        _state.NextToken();
+
+        AstNode expr = ParseExpression();
+
+        _state.ExpectTokenOrError(TokenType.RightParen);
+        if (_state.CurrentTokenIs(TokenType.RightParen))
+        {
+            _state.NextToken();
+        }
+
+        return expr;
+    }
+
+    private List<AstNode> ParseArguments()
+    {
+        List<AstNode> arguments = new(0);
+        if (_state.CurrentTokenIs(TokenType.LeftParen))
+        {
+            _state.NextToken();
+        }
+
+        while (!_state.CurrentTokenIs(TokenType.RightParen))
+        {
+            arguments.Add(ParseExpression());
+
+            if (!_state.CurrentTokenIs(TokenType.RightParen)
+                && !_state.CurrentTokenIs(TokenType.Comma))
+            {
+                _state.ErrCurrentToken("Expected comma (to separate args).");
+            }
+            else if (_state.CurrentTokenIs(TokenType.Comma))
+            {
+                _state.NextToken();
+            }
+        }
+        _state.NextToken();
+        return arguments;
     }
 
     private NamespaceName ParseNamespaceName()
@@ -394,7 +828,7 @@ public sealed class Parser
         while (!_state.CurrentTokenIs(TokenType.RightParen))
         {
             FileLocation location;
-            TypeRefNode type = ParseTypeRef();
+            ObjAccessNode type = ParseTypeRef();
             string name;
 
             if (_state.CurrentTokenIs(TokenType.Identifier))
@@ -409,7 +843,7 @@ public sealed class Parser
                 location = type.SourceLocation;
             }
 
-            parameters.Add(new VariableNode(name, type, location));
+            parameters.Add(new VariableNode(name, type, location, null));
 
             if (!_state.CurrentTokenIs(TokenType.RightParen)
                 && !_state.CurrentTokenIs(TokenType.Comma))
@@ -432,11 +866,11 @@ public sealed class Parser
         return _state.CurrentTokenIs(TokenType.Identifier);
     }
 
-    private TypeRefNode ParseTypeRef()
+    private ObjAccessNode ParseTypeRef()
     {
         // segment - word separated by ::
         List<Token> segments = new(1);
-        List<TypeRefNode> genericArgs = new(0);
+        List<ObjAccessNode> genericArgs = new(0);
 
         while (true)
         {
@@ -483,7 +917,7 @@ public sealed class Parser
         }
 
         Token typeNameToken = segments.Last();
-        return new TypeRefNode(
+        return new ObjAccessNode(
             namespaceName,
             typeNameToken.Value.ToString(),
             genericArgs,

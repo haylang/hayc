@@ -1,5 +1,5 @@
 using System.Collections;
-using HaycLib.Ast.DataObjects;
+using HaycLib.Ast.Data;
 using HaycLib.Location;
 
 namespace HaycLib.Ast.Nodes;
@@ -10,9 +10,9 @@ public class StructFuncNode : FuncNode
         string name,
         IEnumerable<VariableNode> parameters,
         IEnumerable<HayAttribute> attributes,
-        TypeRefNode returnType,
+        ObjAccessNode returnType,
         FileLocation location,
-        TypeRefNode ownerStruct)
+        ObjAccessNode ownerStruct)
         : base(name, attributes, parameters, returnType, location)
     {
         OwnerStruct = ownerStruct;
@@ -21,7 +21,7 @@ public class StructFuncNode : FuncNode
     /// <summary>
     /// The structure this function belongs to.
     /// </summary>
-    public TypeRefNode OwnerStruct { get; }
+    public ObjAccessNode OwnerStruct { get; }
 
     public override T Accept<T>(IVisitor<T> visitor)
     {

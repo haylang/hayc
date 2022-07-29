@@ -96,6 +96,9 @@ public enum TokenType
     [SimpleTokenType('/')]
     Slash,
     
+    [SimpleTokenType('%')]
+    Percent,
+    
     [SimpleTokenType(':')]
     Colon,
     

@@ -47,4 +47,23 @@ public static class TokenTypeExtensions
     {
         return Patterns[tokenType];
     }
+
+    /// <summary>
+    /// Retrieves the precedence for the given token type.
+    /// </summary>
+    public static int GetPrecedence(this TokenType tokenType)
+    {
+        return tokenType switch
+        {
+            _ => -1
+        };
+    }
+
+    /// <summary>
+    /// Whether an operator is right-assoc.
+    /// </summary>
+    public static bool IsRightAssociative(this TokenType tokenType)
+    {
+        return tokenType == TokenType.Power;
+    }
 }

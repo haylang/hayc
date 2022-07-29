@@ -1,4 +1,4 @@
-using HaycLib.Ast.DataObjects;
+using HaycLib.Ast.Data;
 using HaycLib.Lexing;
 
 namespace HaycLib.Parsing;
@@ -75,6 +75,11 @@ public static class ParsingExtensions
                 if (state.CurrentTokenIs(TokenType.LeftBrace))
                 {
                     mode = ParseRecoverMode.UntilBrace;
+                    break;
+                }
+                else if (state.CurrentTokenIs(TokenType.Semicolon))
+                {
+                    // mode is already set to semicolon
                     break;
                 }
                 
